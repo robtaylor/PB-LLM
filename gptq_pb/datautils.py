@@ -26,7 +26,7 @@ def get_tokenizer(model):
     return tokenizer
 
 def get_wikitext2(nsamples, seed, seqlen, model, tokenizer):
-    
+
     traindata = load_dataset('wikitext', 'wikitext-2-raw-v1', split='train')
     testdata = load_dataset('wikitext', 'wikitext-2-raw-v1', split='test')
 
@@ -68,10 +68,10 @@ class TokenizerWrapper:
 
 def get_c4(nsamples, seed, seqlen, model, tokenizer):
     traindata = load_dataset(
-        'allenai/c4', 'allenai--c4', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train'
+        'allenai/c4', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train'
     )
     valdata = load_dataset(
-        'allenai/c4', 'allenai--c4', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation'
+        'allenai/c4', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation'
     )
 
     random.seed(seed)
@@ -92,7 +92,7 @@ def get_c4(nsamples, seed, seqlen, model, tokenizer):
     valenc = tokenizer(' '.join(valdata[:1100]['text']), return_tensors='pt')
     valenc = valenc.input_ids[:, :(256 * seqlen)]
 
-    
+
     valenc = TokenizerWrapper(valenc)
 
     return trainloader, valenc
@@ -105,7 +105,7 @@ def get_loaders(name, nsamples=128, seed=0, seqlen=2048, model=''):
         pass
 
     tokenizer = get_tokenizer(model)
-    
+
     if 'wikitext2' in name:
         loaders= get_wikitext2(nsamples, seed, seqlen, model, tokenizer)
     if 'ptb' in name:
