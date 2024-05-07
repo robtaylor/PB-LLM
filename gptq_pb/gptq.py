@@ -107,7 +107,7 @@ class LowHighGPT:
 
         if OUTPUTMASK:
             if os.path.exists("./outputs/mask") == False:
-                os.mkdir("./outputs/mask")
+                os.makedirs("./outputs/mask", exist_ok=True)
             torch.save(
                 mask,
                 f"./outputs/mask/mask_{low_frac}_{self.layer.global_name.replace('/','_')}.pkl",
@@ -173,7 +173,8 @@ class LowHighGPT:
                     print(torch.sum((self.layer(self.inp1) - self.out1) ** 2))
                     print(torch.sum(Losses))
 
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         print("time %.2f" % (time.time() - tick))
         print("error", torch.sum(Losses).item())
 
@@ -191,4 +192,5 @@ class LowHighGPT:
             self.inp1 = None
             self.out1 = None
         self.H = None
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()

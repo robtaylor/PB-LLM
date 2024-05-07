@@ -1,5 +1,7 @@
+import os
 import time
 
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 import torch
 import torch.nn as nn
 
@@ -105,7 +107,9 @@ def quant_sequential(model, dataloader, dev):
     elif "huggyllama" in args.model:
         model.model.embed_tokens = model.model.embed_tokens.cpu()
         model.model.norm = model.model.norm.cpu()
-    torch.cuda.empty_cache()
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     outs = torch.zeros_like(inps)
     attention_mask = cache["attention_mask"]
@@ -173,7 +177,8 @@ def quant_sequential(model, dataloader, dev):
         layers[i] = layer.cpu()
         del layer
         del gpts
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         inps, outs = outs, inps
     if args.plot:
@@ -272,7 +277,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    device = "cuda:0"
+    if torch.cuda.is_available():
+        print("Using CUDA backend")
+        device = "cuda:0"
+    elif torch.backends.mps.is_available():
+        print("Using MPS backend")
+        device = "mps"
+    else:
+        print("Using CPU backend")
+        device = "cpu"
+
     save_title = f"{args.model}_{args.dataset}_{args.low_quant_method}_{args.low_frac}_{args.high_bit}_{args.groupsize}_{args.salient_metric}"
     save_file = "../output/" + save_title.replace("/", "_") + ".pt"
     if args.load_quantized:
